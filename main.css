@@ -179,7 +179,12 @@ button:focus, .box:focus {
         font-size: 28px;
     }
 
+    #infostatus {
+        font-size: 20px;
+    }
+
     body {
         background-attachment: scroll;
+        height: auto;
     }
 }
