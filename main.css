@@ -1,0 +1,185 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wgh@400;800&display=swap');
+
+body {
+    text-align: center;
+    font-size: 35px;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url(1353836.jpg);
+    background-position: center;
+    background-attachment: fixed;
+    background-size: cover;
+    font-family: "Raleway", sans-serif;
+}
+
+#credit {
+    position: absolute;
+    bottom: 10px;
+    left: 46.5%;
+    font-size: 16px;
+    color: white;
+    text-align: center;
+
+    font-family: "Raleway", sans-serif;
+}
+.Select {
+    width: 500px;
+    height: 500px;
+    position: relative;
+    background-color: rgb(255, 3, 3);
+}
+
+#container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    width: 350px;
+}
+
+h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+    color: #00c3ff;
+}
+
+#infostatus {
+    font-size: 24px;
+    font-family: "Raleway", sans-serif;
+    font-weight: 800;
+    margin: 10px 0;
+    color: #e5ff4f;
+    padding: 10px;
+    width: auto;
+    height: auto;
+    border-radius: 10px;
+    background-color: #44ff8c;
+}
+
+#playgrid {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 5px;
+    justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.box {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    border: 2px solid #4CAF50;
+    font-size: 2em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    box-sizing: border-box;
+}
+
+.box:hover {
+    background-color: #f1f1f1;
+    transform: scale(1.05);
+}
+
+.box.mark_x {
+    color: brown;
+    font-weight: bold;
+}
+
+.box.mark_o {
+    color: rgb(175, 216, 27);
+    font-weight: bold;
+}
+
+button {
+    font-size: 16px;
+    padding: 10px 20px;
+    margin: 10px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+button:hover {
+    background-color: #4CAF50;
+    color: white;
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+}
+
+button:focus, .box:focus {
+    outline: 3px solid #4CAF50;
+    outline-offset: 2px;
+}
+
+#SelectMode, #botdifficulty {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.btnGamemode, .btnmode, .btndifficulty {
+    background-color: #f1f1f1;
+    color: #333;
+    border-radius: 8px;
+    font-size: 16px;
+    padding: 10px;
+    margin: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btnGamemode:hover, .btnmode.pvp:hover:hover, .btndifficulty:hover {
+    background-color: #4CAF50;
+    color: white;
+}
+
+
+.selectedbtn, .selectedbtnm, .selectedbtngm {
+    background-color: #696969;
+    color: white;
+}
+
+@media (max-width: 600px) {
+    #container {
+        width: 90%;
+    }
+
+    #playgrid {
+        grid-template-columns: repeat(3, 80px);
+        grid-template-rows: repeat(3, 80px);
+        gap: 3px;
+    }
+
+    .box {
+        width: 80px;
+        height: 80px;
+        font-size: 1.8em;
+    }
+
+    button {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+
+    body {
+        background-attachment: scroll;
+    }
+}

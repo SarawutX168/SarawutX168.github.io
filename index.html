@@ -1,0 +1,37 @@
+<html>
+<head>
+    <title>TicTacToe By Sarawut</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        .btnmode[disabled] {
+            background-color: #e0e0e0;
+            cursor: not-allowed;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div id="credit">Create by Sarawut Wiangsimma</div>
+    <div id="GameMode">
+        <button class="btnGamemode" id="btnreset">New Game!</button>
+    </div>
+
+    <div id="SelectMode">
+        <button class="btnmode" data-mode="pvp">Player vs Player</button>
+        <button class="btnmode" data-mode="pwb" disabled>Play with bot(maintainence)</button>
+    </div>
+
+    <div id="botdifficulty">
+        <button class="btndifficulty" data-difficulty="Medium">Medium</button>
+        <button class="btndifficulty" data-difficulty="Hard">Hard</button>
+        <button class="btndifficulty" data-difficulty="Extreme">Extreme</button>
+    </div>
+
+    <div id="container">
+        <h1>TicTacToe</h1>
+        <span id="infostatus">Select Game Mode</span>
+        <div id="playgrid"></div>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
