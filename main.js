@@ -119,14 +119,14 @@ function checkWin() {
 function highlightWinningCells(patt) {
     patt.forEach(index => {
         const box = document.querySelector(`[data-index='${index}']`);
-        box.style.backgroundColor = '#4CAF50';  // Highlight winning cells with green
+        box.style.backgroundColor = '#4CAF50';
     });
 }
 
 function makeAllCellsBlue() {
     const allDivs = document.querySelectorAll(".box");
     allDivs.forEach(div => {
-        div.style.backgroundColor = 'blue';  // Set background color to blue for all cells
+        div.style.backgroundColor = 'blue';
     });
 }
 
