@@ -103,6 +103,15 @@
 <div class="relative mb-6">
 <!-- Sleek Custom Floating Action Bar matching the Dark Theme -->
 <div class="graph-action-bar">
+ <!-- กลุ่มปุ่มจัดการประวัติ -->
+            <button id="btn-undo" class="graph-tool-btn tool-btn-history" onclick="undoAction()" title="ย้อนกลับ (Undo)" disabled>
+                <i class="fa-solid fa-rotate-left"></i>
+            </button>
+            <button id="btn-redo" class="graph-tool-btn tool-btn-history mr-2" onclick="redoAction()" title="ทำซ้ำ (Redo)" disabled>
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+            <div class="w-px h-5 bg-slate-700 mx-1"></div> <!-- เส้นคั่น -->
+
 <button class="graph-tool-btn tool-btn-node" onclick="triggerAddNode()" title="เพิ่มโหนดใหม่ (Add Node)">
 <i class="fa-solid fa-circle-plus text-emerald-400"></i>
 <span>เพิ่มโหนด (Add Node)</span>
