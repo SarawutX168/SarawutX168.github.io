@@ -221,8 +221,12 @@ function triggerAddEdge() {
 
 function triggerEditEdge() {
     if (!network) return;
-    cancelCustomModes();
+    
+    // 1. ดึงข้อมูลเส้นที่ผู้ใช้คลิกเลือกไว้ "ก่อน"
     let selectedEdges = network.getSelectedEdges();
+    
+    cancelCustomModes(); // 2. เคลียร์สถานะปุ่ม
+    
     if (selectedEdges && selectedEdges.length > 0) {
         let edge = edges.get(selectedEdges[0]);
         let currentWeight = edge.label || "1";
@@ -238,9 +242,12 @@ function triggerEditEdge() {
 
 function triggerDeleteSelected() {
     if (!network) return;
-    cancelCustomModes();
+    
+    // 1. ดึงข้อมูลจุดหรือเส้นที่ผู้ใช้คลิกเลือกไว้ "ก่อน"
     let selectedNodes = network.getSelectedNodes();
     let selectedEdges = network.getSelectedEdges();
+    
+    cancelCustomModes(); // 2. เคลียร์สถานะปุ่ม
 
     if (selectedNodes.length === 0 && selectedEdges.length === 0) {
         showToast("กรุณาคลิกเลือกโหนดหรือเส้นที่ต้องการลบก่อน", "warning");
