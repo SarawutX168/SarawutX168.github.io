@@ -524,3 +524,16 @@
     transform: none !important;
     box-shadow: none !important;
 }
+
+
+/* =========================================================
+   ซ่อนเมนูดั้งเดิมของ Vis.js (ตัวการที่ทำให้เกิดแถบขาวและบังปุ่ม)
+========================================================= */
+div.vis-network div.vis-manipulation { display: none !important; }
+div.vis-network div.vis-edit-mode { display: none !important; }
+div.vis-network button.vis-close { display: none !important; }
+
+/* ยกปุ่มเครื่องมือของเราให้ลอยอยู่บนสุดเสมอ ป้องกันการโดนบัง */
+.graph-action-bar {
+    z-index: 99 !important; 
+}
