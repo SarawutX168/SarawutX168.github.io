@@ -4,43 +4,29 @@ let isPracticeMode = false;
 let network;
 let nodes, edges;
 
-// ตัวแปรสำหรับเชื่อมเส้น
+// ตัวแปรสำหรับโหมดเชื่อมเส้นแบบคลิก
 let customAddEdgeMode = false;
 let selectedNodeForEdge = null;
 
-// ==========================================
-// NEW: ระบบ Undo / Redo
-// ==========================================
+// ระบบ Undo / Redo
 let undoStack = [];
 let redoStack = [];
-const MAX_HISTORY = 30; // เก็บประวัติย้อนหลังได้ 30 ครั้ง
+const MAX_HISTORY = 30;
 
 function saveGraphState() {
-    // บันทึกสถานะปัจจุบันเก็บไว้ก่อนที่จะมีการเปลี่ยนแปลง
-    const currentState = {
-        nodes: nodes.get(),
-        edges: edges.get()
-    };
+    const currentState = { nodes: nodes.get(), edges: edges.get() };
     undoStack.push(JSON.stringify(currentState));
-    if (undoStack.length > MAX_HISTORY) {
-        undoStack.shift(); // ลบอันเก่าสุดทิ้งถ้ายาวเกิน
-    }
-    redoStack = []; // เคลียร์ Redo ทุกครั้งที่มีการกระทำใหม่
+    if (undoStack.length > MAX_HISTORY) undoStack.shift();
+    redoStack = []; 
     updateUndoRedoUI();
 }
 
 function undoAction() {
     if (undoStack.length > 0) {
-        const currentState = { nodes: nodes.get(), edges: edges.get() };
-        redoStack.push(JSON.stringify(currentState)); // เก็บอันปัจจุบันไว้ใน Redo
-
-        const prevStateJSON = undoStack.pop();
-        const prevState = JSON.parse(prevStateJSON);
-        
+        redoStack.push(JSON.stringify({ nodes: nodes.get(), edges: edges.get() }));
+        const prevState = JSON.parse(undoStack.pop());
         nodes.clear(); edges.clear();
-        nodes.add(prevState.nodes);
-        edges.add(prevState.edges);
-        
+        nodes.add(prevState.nodes); edges.add(prevState.edges);
         updateUndoRedoUI();
         showToast("ย้อนกลับแล้ว", "info");
     }
@@ -48,16 +34,10 @@ function undoAction() {
 
 function redoAction() {
     if (redoStack.length > 0) {
-        const currentState = { nodes: nodes.get(), edges: edges.get() };
-        undoStack.push(JSON.stringify(currentState)); // เก็บกลับไปที่ Undo
-
-        const nextStateJSON = redoStack.pop();
-        const nextState = JSON.parse(nextStateJSON);
-        
+        undoStack.push(JSON.stringify({ nodes: nodes.get(), edges: edges.get() }));
+        const nextState = JSON.parse(redoStack.pop());
         nodes.clear(); edges.clear();
-        nodes.add(nextState.nodes);
-        edges.add(nextState.edges);
-        
+        nodes.add(nextState.nodes); edges.add(nextState.edges);
         updateUndoRedoUI();
         showToast("ทำซ้ำแล้ว", "info");
     }
@@ -69,7 +49,6 @@ function updateUndoRedoUI() {
     if (btnUndo) btnUndo.disabled = undoStack.length === 0;
     if (btnRedo) btnRedo.disabled = redoStack.length === 0;
 }
-// ==========================================
 
 function cancelCustomModes() {
     customAddEdgeMode = false;
@@ -84,13 +63,9 @@ function showToast(message, type = 'info') {
     const msg = document.getElementById('toast-msg');
 
     msg.textContent = message;
-    if(type === 'success') {
-        icon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
-    } else if(type === 'warning') {
-        icon.className = "fa-solid fa-triangle-exclamation text-amber-400 text-base";
-    } else {
-        icon.className = "fa-solid fa-circle-info text-cyan-400 text-base";
-    }
+    if(type === 'success') icon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+    else if(type === 'warning') icon.className = "fa-solid fa-triangle-exclamation text-amber-400 text-base";
+    else icon.className = "fa-solid fa-circle-info text-cyan-400 text-base";
 
     toast.classList.add('show');
     setTimeout(() => { toast.classList.remove('show'); }, 3000);
@@ -119,8 +94,9 @@ function initNetwork() {
         physics: false,
         interaction: { zoomView: true, dragView: true, selectConnectedEdges: false },
         nodes: {
-            shape: 'dot', size: 16, borderWidth: 2.5,
+            shape: 'dot', size: 16,
             font: { size: 17, color: '#f8fafc', face: 'Fira Code, monospace', bold: true },
+            borderWidth: 2.5,
             color: { background: '#090e1c', border: '#0ea5e9', highlight: { background: '#0ea5e9', border: '#ffffff' } },
             shadow: { enabled: true, color: 'rgba(14, 165, 233, 0.35)', size: 10, x: 0, y: 0 }
         },
@@ -130,14 +106,17 @@ function initNetwork() {
             font: { size: 15, color: '#34d399', align: 'horizontal', background: '#090e1c', strokeWidth: 0, face: 'Fira Code, monospace', bold: true }
         },
         manipulation: {
-            enabled: true, initiallyActive: false,
+            enabled: true,
+            initiallyActive: false,
             addNode: function(data, callback) {
-                var label = prompt("ระบุชื่อโหนด (เช่น a, b, c):", "");
+                var label = prompt("ระบุชื่อโหนด (เช่น a, b, c หรือ X):", "");
                 if (label && label.trim() !== "") {
                     const trimmed = label.trim().toLowerCase();
-                    if(nodes.get(trimmed)) { showToast("มีโหนด " + trimmed + " อยู่ในกราฟแล้ว", "warning"); callback(null); return; }
-                    
-                    saveGraphState(); // บันทึกก่อนเพิ่ม
+                    if(nodes.get(trimmed)) {
+                        showToast("มีโหนด " + trimmed + " อยู่ในกราฟแล้ว", "warning");
+                        callback(null); return;
+                    }
+                    saveGraphState(); // บันทึก State
                     data.id = trimmed; data.label = trimmed;
                     if (document.getElementById('snapToGrid').checked) {
                         data.x = Math.round(data.x / GRID_SIZE) * GRID_SIZE;
@@ -154,13 +133,28 @@ function initNetwork() {
 
     network = new vis.Network(container, { nodes: nodes, edges: edges }, options);
 
-    // บันทึกสถานะก่อนเริ่มลากจุดยอด
+    // ดักจับการย้ายจุด
     network.on("dragStart", function(params) {
+        if (params.nodes.length > 0) saveGraphState();
+    });
+
+    network.on("dragEnd", function(params) {
         if (params.nodes.length > 0) {
-            saveGraphState();
+            let updates = [];
+            let snap = document.getElementById('snapToGrid').checked;
+            params.nodes.forEach(nodeId => {
+                let pos = network.getPositions([nodeId])[nodeId];
+                updates.push({ 
+                    id: nodeId, 
+                    x: snap ? Math.round(pos.x / GRID_SIZE) * GRID_SIZE : pos.x, 
+                    y: snap ? Math.round(pos.y / GRID_SIZE) * GRID_SIZE : pos.y 
+                });
+            });
+            nodes.update(updates);
         }
     });
 
+    // โหมดเชื่อมเส้นด้วยการคลิก
     network.on("click", function(params) {
         if (customAddEdgeMode) {
             if (params.nodes.length > 0) {
@@ -173,10 +167,9 @@ function initNetwork() {
                         showToast("ไม่สามารถเชื่อมต่อโหนดเข้าหาตัวเองได้", "warning");
                         selectedNodeForEdge = null; network.unselectAll(); return;
                     }
-
                     var weight = prompt("ระบุน้ำหนัก/ระยะทาง (ตัวเลข):", "1");
                     if (weight && !isNaN(weight) && weight.trim() !== "") {
-                        saveGraphState(); // บันทึกก่อนเชื่อมเส้น
+                        saveGraphState(); // บันทึก State
                         edges.add({ from: selectedNodeForEdge, to: clickedNodeId, label: weight.trim() });
                         showToast(`เชื่อมต่อเส้น ${selectedNodeForEdge} ↔ ${clickedNodeId} เรียบร้อย`, "success");
                         resetEdgeColors();
@@ -199,20 +192,11 @@ function initNetwork() {
         for (var y = -2000; y <= 2000; y += GRID_SIZE) { ctx.moveTo(-2000, y); ctx.lineTo(2000, y); }
         ctx.stroke(); ctx.restore();
     });
-
-    network.on("dragEnd", function(params) {
-        if (params.nodes.length > 0) {
-            let updates = [];
-            let snap = document.getElementById('snapToGrid').checked;
-            params.nodes.forEach(nodeId => {
-                let pos = network.getPositions([nodeId])[nodeId];
-                updates.push({ id: nodeId, x: snap ? Math.round(pos.x / GRID_SIZE) * GRID_SIZE : pos.x, y: snap ? Math.round(pos.y / GRID_SIZE) * GRID_SIZE : pos.y });
-            });
-            nodes.update(updates);
-        }
-    });
 }
 
+// ----------------------------------------------------
+// Triggers สำหรับปุ่มบนหน้าจอ
+// ----------------------------------------------------
 function triggerAddNode() {
     if (!network) return;
     cancelCustomModes();
@@ -224,7 +208,7 @@ function triggerAddEdge() {
     if (!network) return;
     cancelCustomModes(); 
     network.disableEditMode();
-    customAddEdgeMode = true; 
+    customAddEdgeMode = true;
     document.querySelector('.tool-btn-edge').classList.add('active');
     showToast("คลิกที่โหนดแรกที่ต้องการเชื่อมเส้น", "info");
 }
@@ -239,12 +223,12 @@ function triggerEditEdge() {
         let currentWeight = edge.label || "1";
         let newWeight = prompt("แก้ไขระยะทางใหม่ (ตัวเลข):", currentWeight);
         if (newWeight && !isNaN(newWeight) && newWeight.trim() !== "") {
-            saveGraphState(); // บันทึกก่อนแก้ไข
+            saveGraphState();
             edges.update({ id: edge.id, label: newWeight.trim() });
             showToast(`อัปเดตน้ำหนักเป็น ${newWeight.trim()}`, "success");
         }
     } else {
-        showToast("กรุณาคลิกเลือกเส้นที่ต้องการแก้ไขก่อน", "warning");
+        showToast("กรุณาคลิกเลือกเส้น (Edge) ที่ต้องการแก้ไขก่อน", "warning");
     }
 }
 
@@ -258,13 +242,16 @@ function triggerDeleteSelected() {
         showToast("กรุณาคลิกเลือกโหนดหรือเส้นที่ต้องการลบก่อน", "warning");
         return;
     }
-
-    saveGraphState(); // บันทึกก่อนลบ
+    
+    saveGraphState();
     if (selectedNodes.length > 0) selectedNodes.forEach(id => nodes.remove(id));
     if (selectedEdges.length > 0) selectedEdges.forEach(id => edges.remove(id));
     showToast("ลบรายการที่เลือกแล้ว", "info");
 }
 
+// ----------------------------------------------------
+// ระบบบันทึกกราฟและโหลดกราฟ
+// ----------------------------------------------------
 function saveGraph() {
     const currentNodes = nodes.get();
     const currentEdges = edges.get();
@@ -280,12 +267,14 @@ function saveGraph() {
 function loadSavedGraph() {
     const savedNodes = localStorage.getItem('dijkstra_nodes');
     const savedEdges = localStorage.getItem('dijkstra_edges');
+    
     if (savedNodes && savedEdges) {
-        if(confirm("ต้องการโหลดกราฟที่บันทึกไว้ใช่หรือไม่?")) {
-            saveGraphState(); // บันทึกก่อนทับ
+        if(confirm("ต้องการโหลดกราฟที่บันทึกไว้ใช่หรือไม่? (กราฟปัจจุบันบนกระดานจะถูกแทนที่)")) {
+            saveGraphState();
             nodes.clear(); edges.clear();
             nodes.add(JSON.parse(savedNodes)); edges.add(JSON.parse(savedEdges));
-            document.getElementById('output-tables').innerHTML = ''; resetEdgeColors();
+            document.getElementById('output-tables').innerHTML = '';
+            resetEdgeColors();
             showToast("โหลดกราฟที่บันทึกไว้สำเร็จ", "info");
         }
     } else {
@@ -295,7 +284,7 @@ function loadSavedGraph() {
 
 function clearGraph() {
     if(confirm("ยืนยันการล้างกราฟทั้งหมด?")) {
-        saveGraphState(); // บันทึกก่อนทับ
+        saveGraphState();
         nodes.clear(); edges.clear();
         document.getElementById('output-tables').innerHTML = '';
         showToast("ล้างกระดานกราฟแล้ว", "info");
@@ -304,18 +293,21 @@ function clearGraph() {
 
 function loadDefaultGraph() {
     if(confirm("รีเซ็ตเป็นโจทย์เริ่มต้น?")) {
-        saveGraphState(); // บันทึกก่อนทับ
+        saveGraphState();
         nodes.clear(); edges.clear();
         nodes.add(JSON.parse(JSON.stringify(defaultNodes)));
         edges.add(JSON.parse(JSON.stringify(defaultEdges)));
-        document.getElementById('output-tables').innerHTML = ''; resetEdgeColors();
+        document.getElementById('output-tables').innerHTML = '';
+        resetEdgeColors();
         showToast("รีเซ็ตเป็นกราฟโจทย์มาตรฐานแล้ว", "info");
     }
 }
 
 function resetEdgeColors() {
     let updates = [];
-    edges.getIds().forEach(id => { updates.push({ id: id, color: { color: '#334155' }, width: 2 }); });
+    edges.getIds().forEach(id => {
+        updates.push({ id: id, color: { color: '#334155' }, width: 2 });
+    });
     edges.update(updates);
 }
 
@@ -323,10 +315,18 @@ function highlightPathOnGraph(pathArray) {
     if(pathArray.length < 2) return;
     let allEdges = edges.get();
     let edgeUpdates = [];
+    
     for(let i = 0; i < pathArray.length - 1; i++) {
-        let u = pathArray[i], v = pathArray[i+1];
+        let u = pathArray[i];
+        let v = pathArray[i+1];
         let matchingEdge = allEdges.find(e => (e.from === u && e.to === v) || (e.from === v && e.to === u));
-        if(matchingEdge) edgeUpdates.push({ id: matchingEdge.id, color: { color: '#f43f5e', highlight: '#f43f5e' }, width: 5 });
+        if(matchingEdge) {
+            edgeUpdates.push({
+                id: matchingEdge.id,
+                color: { color: '#f43f5e', highlight: '#f43f5e' },
+                width: 5
+            });
+        }
     }
     edges.update(edgeUpdates);
 }
@@ -342,7 +342,8 @@ function toggleMode() {
 
     document.getElementById('practice-controls').style.display = 'none';
     document.getElementById('practice-controls').classList.remove('flex');
-    document.getElementById('output-tables').innerHTML = ''; resetEdgeColors();
+    document.getElementById('output-tables').innerHTML = '';
+    resetEdgeColors();
 }
 
 function calculateAndRender(forPractice) {
@@ -356,7 +357,9 @@ function calculateAndRender(forPractice) {
     let graph = {};
     allNodes.forEach(n => graph[n] = {});
     edges.get().forEach(e => {
-        let u = e.from.toString().toLowerCase(), v = e.to.toString().toLowerCase(), w = parseFloat(e.label);
+        let u = e.from.toString().toLowerCase();
+        let v = e.to.toString().toLowerCase();
+        let w = parseFloat(e.label);
         if (!graph[u][v] || w < graph[u][v]) graph[u][v] = w;
         if (!graph[v][u] || w < graph[v][u]) graph[v][u] = w;
     });
@@ -372,21 +375,28 @@ function calculateAndRender(forPractice) {
     let round = 0;
     while (unvisited.size > 0) {
         let current = null, minDist = Infinity;
-        unvisited.forEach(n => { if (dist[n] < minDist) { minDist = dist[n]; current = n; } });
-        if (current === null) break;
+        unvisited.forEach(n => {
+            if (dist[n] < minDist) { minDist = dist[n]; current = n; }
+        });
         
-        unvisited.delete(current); round++;
+        if (current === null) break;
+        unvisited.delete(current);
+        round++;
 
         for (let neighbor in graph[current]) {
             if (unvisited.has(neighbor)) {
                 let newDist = dist[current] + graph[current][neighbor];
-                if (newDist < dist[neighbor]) { dist[neighbor] = newDist; prev[neighbor] = current; }
+                if (newDist < dist[neighbor]) {
+                    dist[neighbor] = newDist;
+                    prev[neighbor] = current;
+                }
             }
         }
         stepsData.push(createStepRecord(round, current, dist, prev, unvisited));
     }
 
     globalStepsData = stepsData;
+
     if (forPractice) renderPracticeUI(stepsData, allNodes);
     else renderAutoUI(stepsData, allNodes, startId, endId, dist, prev);
 }
@@ -402,9 +412,21 @@ function renderAutoUI(steps, allNodes, start, end, finalDist, finalPrev) {
             ? '<span class="text-slate-500 font-mono text-xs">- (จุดเริ่มต้น)</span>' 
             : `<span class="text-cyan-400 font-mono font-bold uppercase bg-slate-900/80 px-2 py-0.5 rounded border border-cyan-500/30">${step.selected}</span>`;
             
-        html += `<div class="step-card"><div class="step-header"><i class="fa-solid fa-layer-group text-sky-400 text-xs"></i><span>รอบที่ ${step.round}</span></div><div class="step-subheader"><span>เลือกโหนด:</span> ${selectedLabel}</div><table class="step-table"><tr><th>v</th><th>dist</th><th>prev</th></tr>`;
+        html += `
+            <div class="step-card">
+                <div class="step-header">
+                    <i class="fa-solid fa-layer-group text-sky-400 text-xs"></i>
+                    <span>รอบที่ ${step.round}</span>
+                </div>
+                <div class="step-subheader">
+                    <span>เลือกโหนด:</span> ${selectedLabel}
+                </div>
+                <table class="step-table">
+                    <tr><th>v</th><th>dist</th><th>prev</th></tr>`;
         allNodes.forEach(n => {
-            let d = step.dist[n] === Infinity ? "inf" : step.dist[n], isSel = (n === step.selected), rowBg = isSel ? 'style="background:rgba(6,182,212,0.12)"' : '';
+            let d = step.dist[n] === Infinity ? "inf" : step.dist[n];
+            let isSel = (n === step.selected);
+            let rowBg = isSel ? 'style="background:rgba(6,182,212,0.12)"' : '';
             html += `<tr ${rowBg}><td class="${isSel ? 'text-cyan-300 font-bold' : 'text-slate-300'}">${n}</td><td class="text-rose-400">${d}</td><td class="text-emerald-400">${step.prev[n]}</td></tr>`;
         });
         html += `</table><div class="step-footer"><span class="text-slate-500">T:</span> { <span class="text-slate-300">${step.T.join(', ')}</span> }</div></div>`;
@@ -412,70 +434,159 @@ function renderAutoUI(steps, allNodes, start, end, finalDist, finalPrev) {
 
     if (finalDist[end] !== undefined && finalDist[end] !== Infinity) {
         let path = [], curr = end;
-        while (curr !== "null" && curr !== undefined) { path.unshift(curr); curr = finalPrev[curr]; }
-        html += `<div class="path-result"><span class="text-slate-400 text-xs uppercase tracking-widest block mb-2 font-bold"><i class="fa-solid fa-route mr-1 text-rose-400"></i> เส้นทางที่สั้นที่สุด</span><div class="text-2xl font-bold font-mono text-white tracking-wide">${path.join(' <span class="text-rose-400 text-lg">&rarr;</span> ')}</div><div class="text-base text-cyan-300 font-mono mt-3 font-semibold">ระยะทางรวม: <span class="text-white bg-slate-900/80 px-3 py-1 rounded-lg border border-slate-700">${finalDist[end]}</span></div></div>`;
+        while (curr !== "null" && curr !== undefined) {
+            path.unshift(curr);
+            curr = finalPrev[curr];
+        }
+        html += `
+            <div class="path-result">
+                <span class="text-slate-400 text-xs uppercase tracking-widest block mb-2 font-bold">
+                    <i class="fa-solid fa-route mr-1 text-rose-400"></i> เส้นทางที่สั้นที่สุด (Shortest Path)
+                </span>
+                <div class="text-2xl font-bold font-mono text-white tracking-wide">
+                    ${path.join(' <span class="text-rose-400 text-lg">&rarr;</span> ')}
+                </div>
+                <div class="text-base text-cyan-300 font-mono mt-3 font-semibold">
+                    ระยะทางรวม: <span class="text-white bg-slate-900/80 px-3 py-1 rounded-lg border border-slate-700">${finalDist[end]}</span>
+                </div>
+            </div>`;
         highlightPathOnGraph(path);
     } else {
-        html += `<div class="path-result" style="border-color: #f59e0b; background: rgba(245, 158, 11, 0.08);"><div class="text-amber-400 font-bold text-lg">ไม่พบเส้นทางที่เชื่อมต่อไปยังโหนด ${end}</div></div>`;
+        html += `
+            <div class="path-result" style="border-color: #f59e0b; background: rgba(245, 158, 11, 0.08);">
+                <div class="text-amber-400 font-bold text-lg">ไม่พบเส้นทางที่เชื่อมต่อไปยังโหนด ${end}</div>
+            </div>`;
     }
+
     document.getElementById('output-tables').innerHTML = html;
 }
 
 function renderPracticeUI(steps, allNodes) {
     let html = "";
     steps.forEach(step => {
-        let nodeSubheader = step.round === 0 
-            ? `<div class="step-subheader text-slate-400"><span>เลือกโหนด:</span> <span class="text-slate-400 font-mono font-medium px-2 py-0.5 rounded bg-slate-800/80 text-[11.5px] border border-slate-700/50">- (จุดเริ่มต้น)</span></div>`
-            : `<div class="step-subheader"><span>เลือกโหนด:</span> <input type="text" id="p_sel_${step.round}" class="prac-node-input" placeholder="?" maxlength="3" autocomplete="off" spellcheck="false"></div>`;
+        let nodeSubheader = "";
+        if (step.round === 0) {
+            nodeSubheader = `<div class="step-subheader text-slate-400">
+                <span>เลือกโหนด:</span> 
+                <span class="text-slate-400 font-mono font-medium px-2 py-0.5 rounded bg-slate-800/80 text-[11.5px] border border-slate-700/50">- (จุดเริ่มต้น)</span>
+            </div>`;
+        } else {
+            nodeSubheader = `<div class="step-subheader">
+                <span>เลือกโหนด:</span> 
+                <input type="text" id="p_sel_${step.round}" class="prac-node-input" placeholder="?" maxlength="3" autocomplete="off" spellcheck="false">
+            </div>`;
+        }
 
-        html += `<div class="step-card"><div class="step-header"><i class="fa-solid fa-pen-nib text-cyan-400 text-xs"></i><span>รอบที่ ${step.round}</span></div>${nodeSubheader}<table class="step-table"><thead><tr><th style="width: 28%;">v</th><th style="width: 36%;">dist</th><th style="width: 36%;">prev</th></tr></thead><tbody>`;
+        html += `
+            <div class="step-card">
+                <div class="step-header">
+                    <i class="fa-solid fa-pen-nib text-cyan-400 text-xs"></i>
+                    <span>รอบที่ ${step.round}</span>
+                </div>
+                ${nodeSubheader}
+                <table class="step-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 28%;">v</th>
+                            <th style="width: 36%;">dist</th>
+                            <th style="width: 36%;">prev</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
         allNodes.forEach(n => {
-            html += `<tr><td class="font-bold text-slate-300 text-xs uppercase">${n}</td><td><input type="text" id="p_dist_${step.round}_${n}" class="prac-cell-input" placeholder="inf" autocomplete="off" spellcheck="false"></td><td><input type="text" id="p_prev_${step.round}_${n}" class="prac-cell-input" placeholder="null" autocomplete="off" spellcheck="false"></td></tr>`;
+            html += `
+                <tr>
+                    <td class="font-bold text-slate-300 text-xs uppercase">${n}</td>
+                    <td><input type="text" id="p_dist_${step.round}_${n}" class="prac-cell-input" placeholder="inf" autocomplete="off" spellcheck="false"></td>
+                    <td><input type="text" id="p_prev_${step.round}_${n}" class="prac-cell-input" placeholder="null" autocomplete="off" spellcheck="false"></td>
+                </tr>`;
         });
-        html += `</tbody></table><div class="step-footer"><span class="text-slate-400 text-xs">T:</span> <span class="text-slate-500 font-mono text-xs">{</span><input type="text" id="p_T_${step.round}" class="prac-set-input" placeholder="a, b, c..." autocomplete="off" spellcheck="false"><span class="text-slate-500 font-mono text-xs">}</span></div></div>`;
+        html += `
+                    </tbody>
+                </table>
+                <div class="step-footer">
+                    <span class="text-slate-400 text-xs">T:</span> 
+                    <span class="text-slate-500 font-mono text-xs">{</span>
+                    <input type="text" id="p_T_${step.round}" class="prac-set-input" placeholder="a, b, c..." autocomplete="off" spellcheck="false">
+                    <span class="text-slate-500 font-mono text-xs">}</span>
+                </div>
+            </div>`;
     });
+
     document.getElementById('output-tables').innerHTML = html;
     const practiceCtrl = document.getElementById('practice-controls');
-    practiceCtrl.style.display = 'flex'; practiceCtrl.classList.add('flex');
+    practiceCtrl.style.display = 'flex';
+    practiceCtrl.classList.add('flex');
 }
 
 function checkAnswers() {
     let allNodes = nodes.getIds().map(x => x.toString().toLowerCase());
-    let correctCount = 0, totalCount = 0;
+    let correctCount = 0;
+    let totalCount = 0;
 
     globalStepsData.forEach(step => {
         if (step.round > 0) {
             let selInput = document.getElementById(`p_sel_${step.round}`);
-            if (selInput) { totalCount++; if (checkMatch(selInput, step.selected)) correctCount++; }
+            if (selInput) {
+                totalCount++;
+                if (checkMatch(selInput, step.selected)) correctCount++;
+            }
         }
-        allNodes.forEach(n => {
-            let distInput = document.getElementById(`p_dist_${step.round}_${n}`), prevInput = document.getElementById(`p_prev_${step.round}_${n}`);
-            let expectDist = step.dist[n] === Infinity ? "inf" : step.dist[n].toString(), expectPrev = step.prev[n] === "null" ? "null" : step.prev[n];
 
-            if (distInput) { totalCount++; if (checkMatch(distInput, expectDist)) correctCount++; }
-            if (prevInput) { totalCount++; if (checkMatch(prevInput, expectPrev, true)) correctCount++; }
+        allNodes.forEach(n => {
+            let distInput = document.getElementById(`p_dist_${step.round}_${n}`);
+            let prevInput = document.getElementById(`p_prev_${step.round}_${n}`);
+            let expectDist = step.dist[n] === Infinity ? "inf" : step.dist[n].toString();
+            let expectPrev = step.prev[n] === "null" ? "null" : step.prev[n];
+
+            if (distInput) {
+                totalCount++;
+                if (checkMatch(distInput, expectDist)) correctCount++;
+            }
+            if (prevInput) {
+                totalCount++;
+                if (checkMatch(prevInput, expectPrev, true)) correctCount++;
+            }
         });
+
         let tInput = document.getElementById(`p_T_${step.round}`);
-        if (tInput) { totalCount++; if (checkMatch(tInput, step.T.join(','), false, true)) correctCount++; }
+        let expectT = step.T.join(',');
+        if (tInput) {
+            totalCount++;
+            if (checkMatch(tInput, expectT, false, true)) correctCount++;
+        }
     });
 
-    if(correctCount === totalCount && totalCount > 0) showToast(`ยอดเยี่ยมมาก! ถูกต้องทั้งหมด ${correctCount}/${totalCount} ช่อง 🎉`, 'success');
-    else showToast(`ตรวจคำตอบเสร็จสิ้น: ถูกต้อง ${correctCount}/${totalCount} ช่อง`, correctCount > (totalCount * 0.7) ? 'warning' : 'info');
+    if(correctCount === totalCount && totalCount > 0) {
+        showToast(`ยอดเยี่ยมมาก! ถูกต้องทั้งหมด ${correctCount}/${totalCount} ช่อง 🎉`, 'success');
+    } else {
+        showToast(`ตรวจคำตอบเสร็จสิ้น: ถูกต้อง ${correctCount}/${totalCount} ช่อง`, correctCount > (totalCount * 0.7) ? 'warning' : 'info');
+    }
 }
 
 function checkMatch(inputElement, expectedValue, isPrev = false, isSet = false) {
-    let userVal = inputElement.value.trim().toLowerCase(), expectedVal = expectedValue.toLowerCase(), isCorrect = false;
+    let userVal = inputElement.value.trim().toLowerCase();
+    let expectedVal = expectedValue.toLowerCase();
+    let isCorrect = false;
 
     if (isSet) {
-        let userTokens = userVal.split(',').map(s => s.trim()).filter(Boolean).sort(), expTokens = expectedVal.split(',').map(s => s.trim()).filter(Boolean).sort();
+        let userTokens = userVal.split(',').map(s => s.trim()).filter(Boolean).sort();
+        let expTokens = expectedVal.split(',').map(s => s.trim()).filter(Boolean).sort();
         if (userTokens.join(',') === expTokens.join(',')) isCorrect = true;
     } else if (isPrev) {
-        if (expectedVal === "null" || expectedVal === "-") { if (userVal === "null" || userVal === "-" || userVal === "") isCorrect = true; } 
-        else { if (userVal === expectedVal) isCorrect = true; }
+        if (expectedVal === "null" || expectedVal === "-") {
+            if (userVal === "null" || userVal === "-" || userVal === "") isCorrect = true;
+        } else {
+            if (userVal === expectedVal) isCorrect = true;
+        }
     } else {
-        if (expectedVal === "inf" || expectedVal === "infinity") { if (userVal === "inf" || userVal === "infinity" || userVal === "∞") isCorrect = true; } 
-        else { if (userVal === expectedVal) isCorrect = true; }
+        if (expectedVal === "inf" || expectedVal === "infinity") {
+            if (userVal === "inf" || userVal === "infinity" || userVal === "∞") isCorrect = true;
+        } else {
+            if (userVal === expectedVal) isCorrect = true;
+        }
     }
+
     inputElement.classList.remove('prac-input-correct', 'prac-input-error');
     inputElement.classList.add(isCorrect ? 'prac-input-correct' : 'prac-input-error');
     return isCorrect;
